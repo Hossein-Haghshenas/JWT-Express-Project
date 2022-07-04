@@ -1,5 +1,7 @@
 const Router = require("express").Router();
 const { check, validationResult } = require("express-validator");
+const users = require("../db/data");
+const bcrypt = require("bcrypt");
 
 Router.post(
   "/signup",
@@ -12,9 +14,10 @@ Router.post(
       min: 6,
     }),
   ],
-  (req, res) => {
+  async (req, res) => {
     const { password, email } = req.body;
 
+    // validate
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -22,6 +25,31 @@ Router.post(
         errors: errors.array(),
       });
     }
+
+    //validate if user dosnt already exist
+
+    let user = users.find((user) => {
+      return user.email === email;
+    });
+
+    if (user) {
+      res.status(400).json({
+        errors: [
+          {
+            msg: "this user already exist",
+          },
+        ],
+      });
+    }
+
+    const hashedPass = await bcrypt.hash(password, 15);
+
+    console.log(hashedPass);
+
+    users.push({
+      email,
+      password: hashedPass,
+    });
 
     res.send("Validation past");
   }
