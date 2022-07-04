@@ -1,7 +1,8 @@
 const Router = require("express").Router();
 const { check, validationResult } = require("express-validator");
-const users = require("../db/data");
+const { users } = require("../db/data");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 Router.post(
   "/signup",
@@ -33,7 +34,7 @@ Router.post(
     });
 
     if (user) {
-      res.status(400).json({
+      return res.status(400).json({
         errors: [
           {
             msg: "this user already exist",
@@ -51,8 +52,64 @@ Router.post(
       password: hashedPass,
     });
 
-    res.send("Validation past");
+    const token = await jwt.sign(
+      {
+        email,
+      },
+      "dfgf656tytrytry56eyw9",
+      { expiresIn: 3600000 }
+    );
+
+    res.json({
+      token,
+    });
   }
 );
+
+Router.post("/login", async (req, res) => {
+  const { password, email } = req.body;
+
+  let user = users.find((user) => {
+    return user.email === email;
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      errors: [
+        {
+          msg: "user not found!!!",
+        },
+      ],
+    });
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    return res.status(400).json({
+      errors: [
+        {
+          msg: "password is't correct !!!",
+        },
+      ],
+    });
+  }
+
+  const token = await jwt.sign(
+    {
+      email,
+    },
+    "dfgf656tytrytry56eyw9",
+    { expiresIn: 3600000 }
+  );
+
+  res.json({
+    token,
+  });
+});
+
+Router.get("/all", (req, res) => {
+  res.json(users);
+});
 
 module.exports = Router;
