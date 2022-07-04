@@ -6,6 +6,7 @@
   "author": "Hossein <77438070+Hossein-Haghshenas@users.noreply.github.com>",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.1"
+    "express": "^4.18.1",
+    "express-validator": "^6.14.2"
   }
 }
